@@ -1,8 +1,13 @@
 import React, { useState } from "react";
-import { useCartStore } from "./store/cartStore";
+import { useCartStore } from "../store/cartStore";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 export default function Cart() {
   const { cartItems, incrementItem, decrementItem, clearCart } = useCartStore();
+  const [address, setAddress] = useState("");
+  const navigate = useNavigate();
+
 
   const items = Object.values(cartItems);
   const total = items.reduce((acc, item) => acc + item.price * item.quantity, 0);
@@ -14,6 +19,26 @@ export default function Cart() {
       </div>
     );
   }
+
+  const handlePlaceOrder = async () => {
+    try {
+      const response = await axios.post("http://localhost:8000/api/v1/orders", {
+        address,
+        items: items.map(({ itemID, itemName, price, quantity }) => ({ itemID, itemName, price, quantity })),
+      }, {
+        withCredentials: true
+      });
+  
+      clearCart();
+      setAddress("");
+  
+      navigate("/billing", { state: { order: response.data.order } });
+  
+    } catch (error) {
+      console.error("Order failed:", error);
+      alert("Failed to place order.");
+    }
+  };
 
   return (
     <div className="flex flex-col md:flex-row py-16 max-w-6xl w-full px-6 mx-auto">
@@ -107,9 +132,23 @@ export default function Cart() {
           </p>
         </div>
 
-        <button className="w-full py-3 mt-6 cursor-pointer bg-indigo-500 text-white font-medium hover:bg-indigo-600 transition">
-          Place Order
-        </button>
+        <div className="mb-6">
+  <label className="block text-sm font-medium mb-1">Delivery Address</label>
+  <textarea
+    value={address}
+    onChange={(e) => setAddress(e.target.value)}
+    className="w-full border border-gray-300 rounded p-2 outline-none resize-none"
+    rows="3"
+    placeholder="Enter your address"
+  />
+</div>
+
+<button
+  onClick={handlePlaceOrder}
+  className="w-full py-3 mt-6 cursor-pointer bg-indigo-500 text-white font-medium hover:bg-indigo-600 transition"
+>
+  Place Order
+</button>
       </div>
     </div>
   );

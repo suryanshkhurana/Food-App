@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { useCartStore } from "./store/cartStore.js";
+import { useCartStore } from "../store/cartStore"
 
 export default function Product({ searchTerm }) {
   const [menuItems, setMenuItems] = useState([]);
@@ -8,18 +8,20 @@ export default function Product({ searchTerm }) {
 
   useEffect(() => {
     axios
-      .get(
-        "https://api.dotpe.in/api/catalog/store/1/menu?referer=burgerbelly&saletype=delivery&serviceSubtype=delivery"
-      )
+      .get("http://localhost:8000/api/v1/products")
       .then((response) => {
-        const rawItems = response.data?.menuItems || {};
-        const itemsArray = Object.values(rawItems);
-        setMenuItems(itemsArray);
+        if (response.data.success && response.data.menuItems) {
+          const rawItems = response.data.menuItems;
+          const itemsArray = Object.values(rawItems);
+          setMenuItems(itemsArray);
+        } else {
+          console.error("Invalid response format:", response.data);
+        }
       })
       .catch((error) => {
         console.error("Error fetching data:", error);
       });
-  }, []);
+  }, []);  
 
   const filteredItems = menuItems.filter((item) =>
     item.itemName.toLowerCase().includes(searchTerm.toLowerCase())

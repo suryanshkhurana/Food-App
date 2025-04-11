@@ -1,18 +1,31 @@
 import React from "react";
-import { Link } from "react-router-dom";
-import { useCartStore } from "./store/cartStore";
+import { Link, useNavigate } from "react-router-dom";
+import { useCartStore } from "../store/cartStore";
+import { useAuthStore } from "../store/authStore";
 
 export default function Navbar({ setSearchTerm }) {
   const [open, setOpen] = React.useState(false);
   const { cartItems } = useCartStore();
+  const { user, isAuthenticated, logout } = useAuthStore();
+  const navigate = useNavigate();
 
   const cartCount = Object.values(cartItems).reduce(
     (acc, item) => acc + item.quantity,
     0
   );
 
+  const handleLogout = async () => {
+    const result = await logout();
+    if (result.success) {
+      navigate('/');
+    } else {
+      // Handle logout error if needed
+      console.error(result.error);
+    }
+  };
+
   return (
-    <nav className="flex items-center justify-between px-3 md:px-16 lg:px-24 xl:px-30 border-b border-gray-300 bg-white relative transition-all">
+    <nav className="flex items-center justify-between px-3 md:px-16 lg:px-24 xl:px-30 border-b border-gray-300 bg-white relative transition-all sticky top-0 z-50">
       {/* Logo */}
       <Link to="/" className="flex items-center space-x-2">
         <span className="text-xl font-bold text-red-500">FoodBite</span>
@@ -25,7 +38,7 @@ export default function Navbar({ setSearchTerm }) {
 
       <div className="hidden sm:flex items-center gap-8">
         <Link to="/">Home</Link>
-        <Link to="/about">About</Link>
+        <Link to="/orders">Past Orders</Link>
         <Link to="/contact">Contact</Link>
 
         {/* Search Bar */}
@@ -61,10 +74,22 @@ export default function Navbar({ setSearchTerm }) {
           )}
         </Link>
 
-        {/* Login Button */}
-        <button className="cursor-pointer px-8 py-2 bg-indigo-500 hover:bg-indigo-600 transition text-white rounded-full">
-          Login
-        </button>
+        {/* Conditional Login/Logout Button */}
+        {isAuthenticated ? (
+          <div className="flex items-center gap-4">
+            <span className="text-sm font-medium">Hi, {user.fullname}</span>
+            <button 
+              onClick={handleLogout} 
+              className="cursor-pointer px-8 py-2 bg-red-500 hover:bg-red-600 transition text-white rounded-full"
+            >
+              Logout
+            </button>
+          </div>
+        ) : (
+          <Link to="/login" className="cursor-pointer px-8 py-2 bg-indigo-500 hover:bg-indigo-600 transition text-white rounded-full">
+            Login
+          </Link>
+        )}
       </div>
 
       {/* Mobile Menu Button */}
@@ -104,9 +129,23 @@ export default function Navbar({ setSearchTerm }) {
         <Link to="/cart" className="block text-indigo-500 font-medium">
           Cart ({cartCount})
         </Link>
-        <button className="cursor-pointer px-6 py-2 mt-2 bg-indigo-500 hover:bg-indigo-600 transition text-white rounded-full text-sm">
-          Login
-        </button>
+        
+        {/* Mobile Login/Logout Button */}
+        {isAuthenticated ? (
+          <div className="flex flex-col w-full gap-2">
+            <span className="text-sm font-medium">Hi, {user.fullname}</span>
+            <button 
+              onClick={handleLogout} 
+              className="cursor-pointer px-6 py-2 mt-2 bg-red-500 hover:bg-red-600 transition text-white rounded-full text-sm w-full"
+            >
+              Logout
+            </button>
+          </div>
+        ) : (
+          <Link to="/login" className="cursor-pointer px-6 py-2 mt-2 bg-indigo-500 hover:bg-indigo-600 transition text-white rounded-full text-sm w-full text-center">
+            Login
+          </Link>
+        )}
       </div>
     </nav>
   );
