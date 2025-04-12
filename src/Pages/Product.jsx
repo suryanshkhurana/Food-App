@@ -1,96 +1,138 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { useCartStore } from "../store/cartStore"
-
+import { useCartStore } from "../store/cartStore";
+import { Loader2, ShoppingCart, Plus, Minus } from "lucide-react";
+import api from "../services/api";
 export default function Product({ searchTerm }) {
   const [menuItems, setMenuItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const { cartItems, addToCart, incrementItem, decrementItem } = useCartStore();
 
   useEffect(() => {
-    axios
-      .get("http://localhost:8000/api/v1/products")
-      .then((response) => {
+    const fetchProducts = async () => {
+      try {
+        setLoading(true);
+        const response = await api.get("/products");
         if (response.data.success && response.data.menuItems) {
-          const rawItems = response.data.menuItems;
-          const itemsArray = Object.values(rawItems);
+          const itemsArray = Object.values(response.data.menuItems);
           setMenuItems(itemsArray);
         } else {
-          console.error("Invalid response format:", response.data);
+          setError("Failed to load products");
         }
-      })
-      .catch((error) => {
+      } catch (error) {
+        setError("Error fetching products. Please try again later.");
         console.error("Error fetching data:", error);
-      });
-  }, []);  
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
 
   const filteredItems = menuItems.filter((item) =>
     item.itemName.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="w-12 h-12 animate-spin text-indigo-600" />
+          <p className="text-gray-600 font-medium">Loading products...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="text-center text-red-600">
+          <p className="text-xl font-semibold mb-2">⚠️</p>
+          <p>{error}</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 flex justify-center gap-6 p-4 w-[80%]">
-      {filteredItems.map((item) => {
-        const quantity = cartItems[item.itemID]?.quantity || 0;
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {filteredItems.map((item) => {
+          const quantity = cartItems[item.itemID]?.quantity || 0;
 
-        return (
-          <div
-            key={item.itemID}
-            className="border border-gray-200 rounded-2xl bg-white shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden flex flex-col"
-          >
-            <div className="w-full h-44 bg-gray-100 overflow-hidden">
-              <img
-                className="w-full h-full object-cover transition-transform duration-200 hover:scale-105"
-                src={item.image || "https://via.placeholder.com/150"}
-                alt={item.itemName}
-              />
-            </div>
+          return (
+            <div
+              key={item.itemID}
+              className="group bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden border border-gray-100"
+            >
+              <div className="aspect-square bg-gray-50 overflow-hidden">
+                <img
+                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                  src={item.image || "https://images.unsplash.com/photo-1546069901-ba9599a7e63c"}
+                  alt={item.itemName}
+                />
+              </div>
 
-            <div className="flex flex-col p-4 flex-grow">
-              <p className="text-gray-800 font-semibold text-lg truncate">{item.itemName}</p>
-              <p className="text-gray-500 text-sm mt-1 line-clamp-2">
-                {item.description || "No description available."}
-              </p>
+              <div className="p-4">
+                <h3 className="font-semibold text-gray-900 truncate">
+                  {item.itemName}
+                </h3>
+                <p className="mt-1 text-sm text-gray-500 line-clamp-2">
+                  {item.description || "Delicious and freshly prepared"}
+                </p>
 
-              <div className="mt-auto pt-4 flex items-center justify-between">
-                <span className="text-indigo-600 font-bold text-base">
-                  ₹{item.price || "99"}
-                </span>
+                <div className="mt-4 flex items-center justify-between">
+                  <span className="text-lg font-bold text-indigo-600">
+                    ₹{item.price}
+                  </span>
 
-                {quantity === 0 ? (
-                  <button
-                    className="bg-indigo-100 text-indigo-600 px-4 py-1.5 rounded-md text-sm font-medium border border-indigo-300 hover:bg-indigo-200 transition"
-                    onClick={() => addToCart(item)}
-                  >
-                    Add
-                  </button>
-                ) : (
-                  <div className="flex items-center bg-indigo-100 rounded-md px-2 py-1 gap-2">
+                  {quantity === 0 ? (
                     <button
-                      onClick={() => decrementItem(item.itemID)}
-                      className="text-indigo-700 hover:text-indigo-900 text-lg font-bold px-2"
+                      onClick={() => addToCart(item)}
+                      className="flex items-center gap-2 bg-indigo-50 text-indigo-600 px-4 py-2 rounded-lg font-medium hover:bg-indigo-100 transition-colors"
                     >
-                      −
+                      <ShoppingCart className="w-4 h-4" />
+                      Add
                     </button>
-                    <span className="min-w-[24px] text-center text-sm font-medium text-gray-800">
-                      {quantity}
-                    </span>
-                    <button
-                      onClick={() => incrementItem(item.itemID)}
-                      className="text-indigo-700 hover:text-indigo-900 text-lg font-bold px-2"
-                    >
-                      +
-                    </button>
-                  </div>
-                )}
+                  ) : (
+                    <div className="flex items-center gap-3 bg-indigo-50 rounded-lg px-3 py-1">
+                      <button
+                        onClick={() => decrementItem(item.itemID)}
+                        className="text-indigo-600 hover:text-indigo-800 transition-colors"
+                      >
+                        <Minus className="w-4 h-4" />
+                      </button>
+                      <span className="w-8 text-center font-medium">
+                        {quantity}
+                      </span>
+                      <button
+                        onClick={() => incrementItem(item.itemID)}
+                        className="text-indigo-600 hover:text-indigo-800 transition-colors"
+                      >
+                        <Plus className="w-4 h-4" />
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
-        );
-      })}
+          );
+        })}
+      </div>
+
       {filteredItems.length === 0 && (
-        <p className="text-gray-500 text-center col-span-full">
-          No items found.
-        </p>
+        <div className="text-center py-12">
+          <div className="text-4xl mb-4">🔍</div>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">
+            No items found
+          </h3>
+          <p className="text-gray-500">
+            Try adjusting your search to find what you're looking for.
+          </p>
+        </div>
       )}
     </div>
   );

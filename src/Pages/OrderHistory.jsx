@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import api from "../services/api";
 
 const boxIcon = "https://raw.githubusercontent.com/prebuiltui/prebuiltui/main/assets/e-commerce/boxIcon.svg";
 
@@ -8,7 +9,7 @@ export default function OrderHistory() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    axios.get("http://localhost:8000/api/v1/orders", {
+    api.get("/orders", {
       withCredentials: true,
     })
       .then((res) => {

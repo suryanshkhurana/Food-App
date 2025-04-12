@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import axios from 'axios';
-
+import api from '../services/api';
 export const useAuthStore = create(
   persist(
     (set) => ({
@@ -15,12 +15,10 @@ export const useAuthStore = create(
       
       logout: async () => {
         try {
-          // Call the backend logout endpoint
-          await axios.post('http://localhost:8000/api/v1/users/logout', {}, {
-            withCredentials: true // Important to include cookies
+          await api.post('/users/logout', {}, {
+            withCredentials: true 
           });
           
-          // Clear auth state
           set({ 
             user: null, 
             isAuthenticated: false 
@@ -37,8 +35,8 @@ export const useAuthStore = create(
       }
     }),
     {
-      name: 'auth-storage', // name of the item in storage
-      getStorage: () => localStorage, // Use localStorage for persistence
+      name: 'auth-storage', 
+      getStorage: () => localStorage, 
     }
   )
 );

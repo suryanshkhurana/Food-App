@@ -8,7 +8,14 @@ import Login from "./Pages/Login";
 import Signup from "./Pages/Signup";
 import Billing from "./Pages/Billing";
 import OrderHistory from "./Pages/OrderHistory";
+import { initializeApiBase } from "./services/api";
+import { useEffect } from "react";
+
 function App() {
+
+  useEffect(() => {
+    initializeApiBase();
+  }, []);
   return (
     <Router>
       <Navbar /> 

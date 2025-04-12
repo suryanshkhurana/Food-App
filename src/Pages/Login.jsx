@@ -2,6 +2,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useAuthStore } from "../store/authStore";
+import api from "../services/api";
 
 const Login = () => {
     const [email, setEmail] = React.useState("");
@@ -14,17 +15,14 @@ const Login = () => {
         e.preventDefault();
         setError(""); // Clear previous errors
         try {
-            const response = await axios.post("http://localhost:8000/api/v1/users/login", {
+            const response = await api.post("/users/login", {
                 email,
                 password,
             }, {
-                withCredentials: true // Important to include cookies
+                withCredentials: true 
             });
-
             console.log("Login successful:", response.data);
             loginUser(response.data.data.user); 
-            
-            // Navigate to home page after login
             navigate("/");
         } catch (err) {
             console.error("Login failed:", err.response?.data || err.message);
