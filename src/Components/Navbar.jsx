@@ -148,6 +148,9 @@ export default function Navbar({ setSearchTerm }) {
         <Link to="/contact" className="block">
           Contact
         </Link>
+        <Link to="/orders" className="block">
+          Orders
+        </Link>
         
         {/* Mobile Search */}
         <form onSubmit={handleSearchSubmit} className="flex w-full items-center gap-2 border border-gray-300 px-3 rounded-full">
