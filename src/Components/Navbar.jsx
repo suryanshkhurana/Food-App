@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import React, { useState, useEffect, useRef } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useCartStore } from "../store/cartStore";
 import { useAuthStore } from "../store/authStore";
 
@@ -9,16 +9,36 @@ export default function Navbar({ setSearchTerm }) {
   const { cartItems } = useCartStore();
   const { user, isAuthenticated, logout } = useAuthStore();
   const navigate = useNavigate();
+  const location = useLocation();
+  const mobileMenuRef = useRef(null);
 
   const cartCount = Object.values(cartItems).reduce(
     (acc, item) => acc + item.quantity,
     0
   );
 
+  // Close mobile menu when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (mobileMenuRef.current && !mobileMenuRef.current.contains(event.target) && open) {
+        setOpen(false);
+      }
+    }
+    
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [open]);
+
+  // Close mobile menu on route change
+  useEffect(() => {
+    setOpen(false);
+  }, [location.pathname]);
+
   const handleLogout = async () => {
     const result = await logout();
     if (result.success) {
       navigate('/');
+      setOpen(false);
     } else {
       // Handle logout error if needed
       console.error(result.error);
@@ -35,8 +55,14 @@ export default function Navbar({ setSearchTerm }) {
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     setSearchTerm(searchValue);
+    setOpen(false); // Close mobile menu after search
     // If you want to navigate to a specific search results page, you could do:
     // navigate(`/search?q=${encodeURIComponent(searchValue)}`);
+  };
+
+  // Close mobile menu after a menu item is clicked
+  const handleMenuItemClick = () => {
+    setOpen(false);
   };
 
   return (
@@ -90,7 +116,7 @@ export default function Navbar({ setSearchTerm }) {
             />
           </svg>
           {cartCount > 0 && (
-            <span className="absolute -top-2 -right-3 text-xs text-white bg-indigo-500 w-[18px] h-[18px] rounded-full flex items-center justify-center">
+            <span className="absolute -top-2 -right-3 text-xs text-white bg-indigo-500 w-5 h-5 rounded-full flex items-center justify-center">
               {cartCount}
             </span>
           )}
@@ -120,48 +146,53 @@ export default function Navbar({ setSearchTerm }) {
         aria-label="Menu"
         className="sm:hidden"
       >
-        <svg
-          width="21"
-          height="15"
-          viewBox="0 0 21 15"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <rect width="21" height="1.5" rx=".75" fill="#426287" />
-          <rect x="8" y="6" width="13" height="1.5" rx=".75" fill="#426287" />
-          <rect x="6" y="13" width="15" height="1.5" rx=".75" fill="#426287" />
-        </svg>
+        {open ? (
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        ) : (
+          <svg
+            width="21"
+            height="15"
+            viewBox="0 0 21 15"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <rect width="21" height="1.5" rx=".75" fill="#426287" />
+            <rect x="8" y="6" width="13" height="1.5" rx=".75" fill="#426287" />
+            <rect x="6" y="13" width="15" height="1.5" rx=".75" fill="#426287" />
+          </svg>
+        )}
       </button>
 
-      {/* Mobile Menu Links */}
+      {/* Mobile Menu Links - Now with auto-close feature */}
       <div
+        ref={mobileMenuRef}
         className={`${
           open ? "flex" : "hidden"
-        } absolute top-[60px] left-0 w-full bg-white shadow-md py-4 flex-col items-start gap-2 px-5 text-sm md:hidden`}
+        } absolute top-full left-0 w-full bg-white shadow-md py-4 flex-col items-start gap-3 px-5 text-sm md:hidden transition-all duration-300 ease-in-out`}
       >
-        <Link to="/" className="block">
+        <Link to="/" className="block w-full py-2 hover:bg-gray-100 px-2 rounded" onClick={handleMenuItemClick}>
           Home
         </Link>
-        <Link to="/about" className="block">
-          About
-        </Link>
-        <Link to="/contact" className="block">
-          Contact
-        </Link>
-        <Link to="/orders" className="block">
+        <Link to="/orders" className="block w-full py-2 hover:bg-gray-100 px-2 rounded" onClick={handleMenuItemClick}>
           Past Orders
         </Link>
+        <Link to="/contact" className="block w-full py-2 hover:bg-gray-100 px-2 rounded" onClick={handleMenuItemClick}>
+          Contact
+        </Link>
         
-        {/* Mobile Search */}
-        <form onSubmit={handleSearchSubmit} className="flex w-full items-center gap-2 border border-gray-300 px-3 rounded-full">
+        {/* Improved Mobile Search */}
+        <form onSubmit={handleSearchSubmit} className="flex w-full items-center gap-2 border border-gray-300 px-3 rounded-full my-2">
           <input
-            className="py-1.5 w-full bg-transparent outline-none placeholder-gray-500"
+            className="py-2 w-full bg-transparent outline-none placeholder-gray-500"
             type="text"
             placeholder="Search products"
             value={searchValue}
             onChange={handleSearchChange}
           />
-          <button type="submit" aria-label="Search" className="text-gray-500">
+          <button type="submit" aria-label="Search" className="text-gray-500 p-1">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="11" cy="11" r="8"></circle>
               <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
@@ -169,23 +200,28 @@ export default function Navbar({ setSearchTerm }) {
           </button>
         </form>
         
-        <Link to="/cart" className="block text-indigo-500 font-medium">
-          Cart ({cartCount})
+        <Link to="/cart" className="block w-full py-2 hover:bg-gray-100 px-2 rounded text-indigo-500 font-medium flex items-center gap-2" onClick={handleMenuItemClick}>
+          <span>Cart</span>
+          {cartCount > 0 && (
+            <span className="text-xs text-white bg-indigo-500 w-5 h-5 rounded-full flex items-center justify-center">
+              {cartCount}
+            </span>
+          )}
         </Link>
         
         {/* Mobile Login/Logout Button */}
         {isAuthenticated ? (
           <div className="flex flex-col w-full gap-2">
-            <span className="text-sm font-medium">Hi, {user.fullname}</span>
+            <span className="text-sm font-medium px-2">Hi, {user.fullname}</span>
             <button 
               onClick={handleLogout} 
-              className="cursor-pointer px-6 py-2 mt-2 bg-red-500 hover:bg-red-600 transition text-white rounded-full text-sm w-full"
+              className="cursor-pointer px-6 py-2 mt-1 bg-red-500 hover:bg-red-600 transition text-white rounded-full text-sm w-full"
             >
               Logout
             </button>
           </div>
         ) : (
-          <Link to="/login" className="cursor-pointer px-6 py-2 mt-2 bg-indigo-500 hover:bg-indigo-600 transition text-white rounded-full text-sm w-full text-center">
+          <Link to="/login" className="cursor-pointer px-6 py-2 mt-1 bg-indigo-500 hover:bg-indigo-600 transition text-white rounded-full text-sm w-full text-center" onClick={handleMenuItemClick}>
             Login
           </Link>
         )}
