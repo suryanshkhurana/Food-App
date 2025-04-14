@@ -8,19 +8,23 @@ import Login from "./Pages/Login";
 import Signup from "./Pages/Signup";
 import Billing from "./Pages/Billing";
 import OrderHistory from "./Pages/OrderHistory";
+import Hero from "./Pages/Hero";
 import { initializeApiBase } from "./services/api";
-import { useEffect } from "react";
-
+import { useEffect, useState } from "react";
+import Product from "./Pages/Product";
 function App() {
+
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     initializeApiBase();
   }, []);
   return (
     <Router>
-      <Navbar /> 
+      <Navbar setSearchTerm={setSearchTerm}/> 
       <Routes>
         <Route path="/" element={<HomePage />} />
+        <Route path="/products" element={<Product searchTerm={searchTerm}/>}/>
         <Route path="/cart" element={<Cart />} />
         <Route path="/contact" element={<Contact/>}/>
         <Route path="/login" element={<Login/>}/>

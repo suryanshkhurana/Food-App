@@ -1,10 +1,11 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useCartStore } from "../store/cartStore";
 import { useAuthStore } from "../store/authStore";
 
 export default function Navbar({ setSearchTerm }) {
-  const [open, setOpen] = React.useState(false);
+  const [open, setOpen] = useState(false);
+  const [searchValue, setSearchValue] = useState("");
   const { cartItems } = useCartStore();
   const { user, isAuthenticated, logout } = useAuthStore();
   const navigate = useNavigate();
@@ -22,6 +23,20 @@ export default function Navbar({ setSearchTerm }) {
       // Handle logout error if needed
       console.error(result.error);
     }
+  };
+
+  const handleSearchChange = (e) => {
+    const value = e.target.value;
+    setSearchValue(value);
+    setSearchTerm(value); // Update the parent component's search term
+  };
+
+  // Handle form submission to prevent page refresh
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    setSearchTerm(searchValue);
+    // If you want to navigate to a specific search results page, you could do:
+    // navigate(`/search?q=${encodeURIComponent(searchValue)}`);
   };
 
   return (
@@ -42,14 +57,21 @@ export default function Navbar({ setSearchTerm }) {
         <Link to="/contact">Contact</Link>
 
         {/* Search Bar */}
-        <div className="hidden lg:flex items-center text-sm gap-2 border border-gray-300 px-3 rounded-full">
+        <form onSubmit={handleSearchSubmit} className="hidden lg:flex items-center text-sm gap-2 border border-gray-300 px-3 rounded-full">
           <input
             className="py-1.5 w-full bg-transparent outline-none placeholder-gray-500"
             type="text"
             placeholder="Search products"
-            onChange={(e) => setSearchTerm(e.target.value)}
+            value={searchValue}
+            onChange={handleSearchChange}
           />
-        </div>
+          <button type="submit" aria-label="Search" className="text-gray-500 hover:text-indigo-600">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+          </button>
+        </form>
 
         {/* 🛒 Cart Icon */}
         <Link to="/cart" className="relative cursor-pointer">
@@ -126,6 +148,24 @@ export default function Navbar({ setSearchTerm }) {
         <Link to="/contact" className="block">
           Contact
         </Link>
+        
+        {/* Mobile Search */}
+        <form onSubmit={handleSearchSubmit} className="flex w-full items-center gap-2 border border-gray-300 px-3 rounded-full">
+          <input
+            className="py-1.5 w-full bg-transparent outline-none placeholder-gray-500"
+            type="text"
+            placeholder="Search products"
+            value={searchValue}
+            onChange={handleSearchChange}
+          />
+          <button type="submit" aria-label="Search" className="text-gray-500">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+          </button>
+        </form>
+        
         <Link to="/cart" className="block text-indigo-500 font-medium">
           Cart ({cartCount})
         </Link>
