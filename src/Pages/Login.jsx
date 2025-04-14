@@ -27,7 +27,7 @@ const Login = () => {
             const { user, accessToken, refreshToken } = response.data.data;
             loginUser(user, { accessToken, refreshToken });
             
-            navigate("/");
+            navigate("/products");
         } catch (err) {
             console.error("Login failed:", err.response?.data || err.message);
             setError(err.response?.data?.message || "Login failed. Please try again.");
