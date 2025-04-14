@@ -1,16 +1,17 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import axios from 'axios';
 import api from '../services/api';
+
 export const useAuthStore = create(
   persist(
     (set) => ({
       user: null,
+      tokens: null, // Add this to store tokens
       isAuthenticated: false,
       
-      login: (userData, tokens) => set({ 
-        user: userData, 
-        tokens: tokens, 
+      login: (userData, tokens) => set({ // Update to accept tokens
+        user: userData,
+        tokens: tokens, // Store tokens
         isAuthenticated: true 
       }),
       
@@ -21,7 +22,8 @@ export const useAuthStore = create(
           });
           
           set({ 
-            user: null, 
+            user: null,
+            tokens: null, // Clear tokens
             isAuthenticated: false 
           });
           

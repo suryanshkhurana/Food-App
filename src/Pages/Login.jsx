@@ -22,7 +22,11 @@ const Login = () => {
                 withCredentials: true 
             });
             console.log("Login successful:", response.data);
-            loginUser(response.data.data.user); 
+            
+            // Store both user and tokens
+            const { user, accessToken, refreshToken } = response.data.data;
+            loginUser(user, { accessToken, refreshToken });
+            
             navigate("/");
         } catch (err) {
             console.error("Login failed:", err.response?.data || err.message);

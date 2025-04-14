@@ -8,14 +8,22 @@ const api = axios.create({
   withCredentials: true 
 });
 
-// Automatically attach token if present
-api.interceptors.request.use((config) => {
-    const token = localStorage.getItem("token");
+api.interceptors.request.use(function (config) {
+  try {
+    const authData = JSON.parse(localStorage.getItem('auth-storage'));
+    const token = authData?.state?.tokens?.accessToken;
+    
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-    return config;
-  });
+  } catch (e) {
+    console.error('Error accessing auth token:', e);
+  }
+  
+  return config;
+}, function (error) {
+  return Promise.reject(error);
+});
   
   export const initializeApiBase = async () => {
     try {
