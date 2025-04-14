@@ -1,10 +1,11 @@
 import axios from "axios";
 
 const LOCAL_API = "http://localhost:8000/api/v1";
-const PROD_API = "https://food-app-backend-1-69jk.onrender.com/api/v1"; 
+const PROD_API = "https://food-app-backend-1-urmc.onrender.com/api/v1"; 
 
 const api = axios.create({
   baseURL: PROD_API,
+  withCredentials: true 
 });
 
 // Automatically attach token if present

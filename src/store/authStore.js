@@ -8,8 +8,9 @@ export const useAuthStore = create(
       user: null,
       isAuthenticated: false,
       
-      login: (userData) => set({ 
+      login: (userData, tokens) => set({ 
         user: userData, 
+        tokens: tokens, 
         isAuthenticated: true 
       }),
       
