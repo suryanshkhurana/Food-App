@@ -149,7 +149,7 @@ export default function Navbar({ setSearchTerm }) {
           Contact
         </Link>
         <Link to="/orders" className="block">
-          Orders
+          Past Orders
         </Link>
         
         {/* Mobile Search */}
